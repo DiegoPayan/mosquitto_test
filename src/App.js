@@ -1,24 +1,27 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, {useState} from 'react';
 import './App.css';
+import * as mqtt from './mqtt'
 
 function App() {
+  let [topic, setTopic] = useState('');
+  let [message, setMessage] = useState('');
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      {!mqtt.verifyConnection() ? console.warn("No se encuentra conectado a un servidor mqtt") : ''}
+      <div className="flex-row"> 
+        <button onClick={() => mqtt.connect()}>Conectar a broker</button>
+      </div>
+      <div className="flex-row"> 
+        <input type="text" value={topic} onChange={(e) => setTopic(e.target.value)} className="span" placeholder="Topic"/>
+        <button onClick={() => mqtt.suscribeTopic(topic)}>Suscribir a topic</button>
+      </div>
+      <div className="flex-row"> 
+        <input type="text" value={message} onChange={(e) => setMessage(e.target.value)} className="span" placeholder="Mensaje"/>
+        <button onClick={() => mqtt.sendMessage(message)}>Enviar mensaje</button>
+      </div>
+      <div className="flex-row"> 
+        <button onClick={() => mqtt.disconnect()}>Desconectar</button>
+      </div>
     </div>
   );
 }
