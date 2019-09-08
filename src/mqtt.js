@@ -3,11 +3,15 @@ import * as Paho from './utils/paho-mqtt';
 const HOST = '192.168.1.72';
 const PORT = 9001;
 
-const client = new Paho.Client(HOST, PORT, 'client-id');
+export const client = new Paho.Client(HOST, PORT, 'client-id');
 
-export const connect = () => {
-    if(!client.isConnected()) {
-        client.connect({onSuccess:onConnect});
+export const connect = async () => {
+    try {
+        if (!client.isConnected()) {
+            client.connect({ onSuccess: onConnect, onFailure: onFailure });
+        }
+    } catch {
+        throw 'Error establecindo la conexión con el broker';
     }
 }
 
@@ -15,8 +19,12 @@ export const onConnect = () => {
     console.log("%c ✔ Conexión exitosa ", 'background-color: #d7ffd7; color: #00c400');
 }
 
+export const onFailure = () => {
+    console.log("%c ✗ Conexión exitosa ", 'background-color: #ffd8d8; color: #ff2727');
+}
+
 export const disconnect = () => {
-    if(client.isConnected()) {
+    if (client.isConnected()) {
         client.disconnect();
         console.log("%c ✗ Desconectado del broker ", 'background-color: #ffd8d8; color: #ff2727');
     } else {
@@ -26,14 +34,14 @@ export const disconnect = () => {
 
 export const verifyConnection = () => {
     let response = false;
-    if(client.isConnected()) {
+    if (client.isConnected()) {
         response = true;
     }
     return response;
 }
 
-export const suscribeTopic = (topic) => {
-    if(client.isConnected()) {
+export const subscribeTopic = (topic) => {
+    if (client.isConnected()) {
         client.subscribe(topic);
         console.log(`%c ✔ Suscripción al topic ${topic} exitosa `, 'background-color: #d7ffd7; color: #00c400');
     } else {
@@ -41,12 +49,34 @@ export const suscribeTopic = (topic) => {
     }
 }
 
-export const sendMessage = (message) => {
+export const unSuscribeTopic = (topic) => {
+    if (client.isConnected()) {
+        client.unsubscribe(topic);
+        console.log(`%c ✗ Desuscripción al topic ${topic} exitosa `, 'background-color: #ffd8d8; color: #ff2727');
+    } else {
+        console.error("No está conectado al broker");
+    }
+}
+
+export const sendMessage = (topic, message) => {
     let Newmessage;
-    if(client.isConnected()) { 
+    if (client.isConnected()) {
         Newmessage = new Paho.Message(message);
-        Newmessage.destinationName = "/test";
-        client.publish(Newmessage);
+        Newmessage.destinationName = topic;
+        client.send(Newmessage);
+    } else {
+        console.error("No está conectado al broker");
+    }
+}
+
+export const publishMessage = (topics = [], message) => {
+    let Newmessage;
+    if (client.isConnected()) {
+        topics.map((val) => {
+            Newmessage = new Paho.Message(message);
+            Newmessage.destinationName = val;
+            client.publish(Newmessage);
+        });
     } else {
         console.error("No está conectado al broker");
     }
