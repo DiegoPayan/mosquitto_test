@@ -2,8 +2,9 @@ import * as Paho from './utils/paho-mqtt';
 
 const HOST = '192.168.1.72';
 const PORT = 9001;
+const CLIENT_ID = 'Test-' + Math.floor(Math.random() * 100).toString()
 
-export const client = new Paho.Client(HOST, PORT, 'client-id');
+export const client = new Paho.Client(HOST, PORT, CLIENT_ID);
 
 export const connect = async () => {
     try {
@@ -89,7 +90,12 @@ export const onConnectionLost = (responseObject) => {
 }
 
 export const onMessageArrived = (message) => {
-    console.log(`%c Mensaje: ${message.payloadString} - Topic ${message.topic}`, 'background-color: #d7ffd7; color: #00c400');
+    if (message.payloadString == "battery/level") {
+        console.log(`%c Mensaje: ${message.payloadString} - Topic ${message.topic}`, 'background-color: #d7ffd7; color: #00c400');
+        sendMessage(message.topic, `sf/battery/${message.topic}/${Math.floor(Math.random() * 100).toString()}`);
+    } else if (message.payloadString == "test/1") {
+        console.log('Prueba 1 iniciada');
+    }
 }
 
 client.onConnectionLost = onConnectionLost;
